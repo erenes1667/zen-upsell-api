@@ -4,7 +4,10 @@ import { notify, fmtUpsellCharged } from '../lib/slack.js';
 
 const router = Router();
 
-const CALENDLY = process.env.CALENDLY_URL;
+// Where buyers go after upsell-2 (Yes OR No). Brief says this lands on the
+// post-payment thank-you page which has Calendly embedded inline. Falls back
+// to CALENDLY_URL if THANK_YOU_URL isn't configured.
+const REDIRECT_AFTER = process.env.THANK_YOU_URL || process.env.CALENDLY_URL;
 const PRICE_BRAND_REP_147 = process.env.STRIPE_PRICE_BRAND_REP_147;
 
 router.post('/charge', async (req, res) => {
@@ -65,7 +68,7 @@ router.post('/charge', async (req, res) => {
    ok: true,
    payment_intent_id: intent.id,
    amount: price.unit_amount,
-   redirect: CALENDLY,
+   redirect: REDIRECT_AFTER,
   });
  } catch (err) {
   console.error('[upsell-2/charge] error', err);
@@ -74,10 +77,10 @@ router.post('/charge', async (req, res) => {
    return res.status(402).json({
     error: 'card requires re-authentication',
     payment_intent: err.raw?.payment_intent?.id,
-    redirect: CALENDLY, // still let them book; we follow up out-of-band
+    redirect: REDIRECT_AFTER, // still let them book; we follow up out-of-band
    });
   }
-  res.status(500).json({ error: err.message || 'charge failed', redirect: CALENDLY });
+  res.status(500).json({ error: err.message || 'charge failed', redirect: REDIRECT_AFTER });
  }
 });
 
