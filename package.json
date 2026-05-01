@@ -1,0 +1,19 @@
+{
+  "name": "zen-upsell-api",
+  "version": "0.1.0",
+  "description": "Stripe checkout + post-purchase upsell + SDR webhook for Zen Media AI Visibility Accelerator LP",
+  "main": "server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env --watch server.js",
+    "create:products": "node --env-file=.env scripts/create-products.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "stripe": "^17.5.0"
+  }
+}
