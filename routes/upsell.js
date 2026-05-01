@@ -4,10 +4,11 @@ import { notify, fmtUpsellCharged } from '../lib/slack.js';
 
 const router = Router();
 
-// Where buyers go after upsell-2 (Yes OR No). Brief says this lands on the
-// post-payment thank-you page which has Calendly embedded inline. Falls back
-// to CALENDLY_URL if THANK_YOU_URL isn't configured.
-const REDIRECT_AFTER = process.env.THANK_YOU_URL || process.env.CALENDLY_URL;
+// Where buyers go after upsell-2 (Yes OR No). Per brief Part 7 step 9:
+// straight to the Calendly booking page so they pick a slot immediately.
+// Post-booking, Calendly's confirmation can route to /thank-you for the
+// "Before You Join Your Strategy Call" content (configured in Calendly UI).
+const REDIRECT_AFTER = process.env.CALENDLY_URL;
 const PRICE_BRAND_REP_147 = process.env.STRIPE_PRICE_BRAND_REP_147;
 
 router.post('/charge', async (req, res) => {
