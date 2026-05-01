@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd \\\"/Users/eneseren/vault/Projects/Jason Wojo Landing Page/api\\\" && \\\\\\nrm lib/telegram.js && \\\\\\necho \\\"✓ removed lib/telegram.js\\\" && \\\\\\nls lib/ && \\\\\\necho \\\"\\\" && \\\\\\necho \\\"=== synt...",
-  "error": "Exit code 143\n✓ removed lib/telegram.js\nslack.js\nstripe.js\n\n=== syntax check ===\n✓ routes/checkout.js\n✓ routes/upsell.js\n✓ routes/webhook.js\n✓ lib/slack.js\n✓ lib/stripe.js\n\n=== boot test (port 3147) ===\n✓ server up\n{\"name\":\"zen-upsell-api\",\"ok\":true,\"mode\":\"test\"}\nHTTP 200",
-  "timestamp": "2026-05-01T15:19:31.288Z",
-  "retry_count": 1
-}

@@ -4,3 +4,7 @@ node_modules/
 .stripe-products.json
 *.log
 .DS_Store
+.omc/
+.claude/
+.vscode/
+.idea/
