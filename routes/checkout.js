@@ -8,7 +8,6 @@ const SUCCESS = process.env.SUCCESS_URL;
 const CANCEL = process.env.CANCEL_URL;
 
 const PRICE_AUDIT_95 = process.env.STRIPE_PRICE_AUDIT_95;
-const PRICE_COMPETITOR_147 = process.env.STRIPE_PRICE_COMPETITOR_147;
 
 router.post('/create-session', async (req, res) => {
  try {
@@ -19,18 +18,15 @@ router.post('/create-session', async (req, res) => {
    return res.status(500).json({ error: 'SUCCESS_URL or CANCEL_URL not configured' });
   }
 
+  // Per Duran 2026-05-01: no order bump on Stripe Checkout. Both $147 upsells
+  // are presented as sequential post-purchase pages (Upsell 1 = Competitor,
+  // Upsell 2 = Brand Reputation), each with its own Yes/No decision.
   const session = await stripe.checkout.sessions.create({
    mode: 'payment',
    line_items: [
     { price: PRICE_AUDIT_95, quantity: 1 },
    ],
-   // Order bump: optional add-on the buyer can toggle on the Stripe Checkout page.
-   ...(PRICE_COMPETITOR_147 ? {
-    optional_items: [
-     { price: PRICE_COMPETITOR_147, quantity: 1, adjustable_quantity: { enabled: false } },
-    ],
-   } : {}),
-   // Save the card for the post-purchase upsell on /upsell-2.
+   // Save the card for the sequential 1-click upsells.
    payment_intent_data: {
     setup_future_usage: 'off_session',
    },
