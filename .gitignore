@@ -8,3 +8,4 @@ node_modules/
 .claude/
 .vscode/
 .idea/
+.checkout-test-url.txt
