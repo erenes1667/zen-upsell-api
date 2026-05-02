@@ -4,11 +4,10 @@ import { notify, fmtUpsellCharged } from '../lib/slack.js';
 
 const router = Router();
 
-// Where buyers go after upsell-2 (Yes OR No). Per brief Part 7 step 9:
-// straight to the Calendly booking page so they pick a slot immediately.
-// Post-booking, Calendly's confirmation can route to /thank-you for the
-// "Before You Join Your Strategy Call" content (configured in Calendly UI).
-const REDIRECT_AFTER = process.env.CALENDLY_URL;
+// Where buyers go after upsell-2 (Yes OR No). Per Duran 2026-05-02:
+// land on /thank-you (which has the trackable Calendly CTAs) rather than
+// Calendly directly. This gives Kaan/PPC click events to track in GA4.
+const REDIRECT_AFTER = process.env.THANK_YOU_URL || 'https://offer.zenmedia.com/thank-you';
 const PRICE_BRAND_REP_147 = process.env.STRIPE_PRICE_BRAND_REP_147;
 
 router.post('/charge', async (req, res) => {
