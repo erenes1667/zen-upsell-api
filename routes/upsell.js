@@ -4,10 +4,10 @@ import { notify, fmtUpsellCharged } from '../lib/slack.js';
 
 const router = Router();
 
-// Where buyers go after upsell-2 (Yes OR No). Per Duran 2026-05-02:
-// land on /thank-you (which has the trackable Calendly CTAs) rather than
-// Calendly directly. This gives Kaan/PPC click events to track in GA4.
-const REDIRECT_AFTER = process.env.THANK_YOU_URL || 'https://offer.zenmedia.com/thank-you';
+// Where buyers go after upsell-2 (Yes OR No). Per Enes 2026-05-03:
+// /thank-you-paid is the post-purchase confirmation page (sales follows up via Slack).
+// /thank-you is reserved for V1 (free webinar) post-Calendly bookings.
+const REDIRECT_AFTER = process.env.THANK_YOU_URL || 'https://offer.zenmedia.com/thank-you-paid';
 const PRICE_BRAND_REP_147 = process.env.STRIPE_PRICE_BRAND_REP_147;
 
 router.post('/charge', async (req, res) => {

@@ -7,8 +7,9 @@ const CALENDLY = process.env.CALENDLY_URL;
 const SUCCESS = process.env.SUCCESS_URL;
 const CANCEL = process.env.CANCEL_URL;
 
-// Tier registry. Both AI Visibility tiers route to /upsell-1 then /upsell-2
-// (the post-purchase upsell sequence), regardless of entry price.
+// Tier registry. Per Duran 2026-05-03: both $95 and $495 skip upsells and go
+// straight to /thank-you-paid. SUCCESS_URL env should point at /thank-you-paid.
+// /upsell-1 and /upsell-2 routes remain in code but are out of the live flow.
 const TIERS = {
  'audit-95': {
   price: process.env.STRIPE_PRICE_AUDIT_95,
