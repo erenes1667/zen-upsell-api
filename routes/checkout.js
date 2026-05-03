@@ -7,36 +7,45 @@ const CALENDLY = process.env.CALENDLY_URL;
 const SUCCESS = process.env.SUCCESS_URL;
 const CANCEL = process.env.CANCEL_URL;
 
-const PRICE_AUDIT_95 = process.env.STRIPE_PRICE_AUDIT_95;
+// Tier registry. Both AI Visibility tiers route to /upsell-1 then /upsell-2
+// (the post-purchase upsell sequence), regardless of entry price.
+const TIERS = {
+ 'audit-95': {
+  price: process.env.STRIPE_PRICE_AUDIT_95,
+  cancelPath: process.env.CANCEL_URL,
+ },
+ 'sprint-495': {
+  price: process.env.STRIPE_PRICE_SPRINT_495,
+  cancelPath: 'https://offer.zenmedia.com/495',
+ },
+};
 
 router.post('/create-session', async (req, res) => {
  try {
-  if (!PRICE_AUDIT_95) {
-   return res.status(500).json({ error: 'STRIPE_PRICE_AUDIT_95 not configured' });
+  const tier = (req.body && req.body.tier) || 'audit-95';
+  const cfg = TIERS[tier];
+  if (!cfg) {
+   return res.status(400).json({ error: `Unknown tier: ${tier}` });
   }
-  if (!SUCCESS || !CANCEL) {
-   return res.status(500).json({ error: 'SUCCESS_URL or CANCEL_URL not configured' });
+  if (!cfg.price) {
+   return res.status(500).json({ error: `Tier ${tier} has no Stripe price configured (env STRIPE_PRICE_${tier.toUpperCase().replace('-','_')})` });
+  }
+  if (!SUCCESS) {
+   return res.status(500).json({ error: 'SUCCESS_URL not configured' });
   }
 
-  // Per Duran 2026-05-01: no order bump on Stripe Checkout. Both $147 upsells
-  // are presented as sequential post-purchase pages (Upsell 1 = Competitor,
-  // Upsell 2 = Brand Reputation), each with its own Yes/No decision.
   const session = await stripe.checkout.sessions.create({
    mode: 'payment',
-   line_items: [
-    { price: PRICE_AUDIT_95, quantity: 1 },
-   ],
-   // Save the card for the sequential 1-click upsells.
-   payment_intent_data: {
-    setup_future_usage: 'off_session',
-   },
+   line_items: [{ price: cfg.price, quantity: 1 }],
+   // Save the card for the sequential 1-click upsells (same across tiers).
+   payment_intent_data: { setup_future_usage: 'off_session' },
    customer_creation: 'always',
    billing_address_collection: 'auto',
    success_url: `${SUCCESS}?session_id={CHECKOUT_SESSION_ID}`,
-   cancel_url: CANCEL,
+   cancel_url: cfg.cancelPath,
    metadata: {
     funnel: 'zen-media-ai-visibility',
-    tier: 'audit-95',
+    tier,
    },
   });
 

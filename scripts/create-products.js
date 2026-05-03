@@ -16,6 +16,12 @@ const PRODUCTS = [
   amount: 9500,
  },
  {
+  tier: 'sprint-495',
+  name: 'AI Visibility Sprint',
+  description: 'Everything in the AI Visibility Audit plus a custom 7-day execution plan and a 60-minute strategy call. 1,000 prompts across 5 AI engines, raw verification data, branded vs non-branded citation breakdown, and the full sprint roadmap.',
+  amount: 49500,
+ },
+ {
   tier: 'competitor-comparison-147',
   name: 'Competitor Visibility Comparison',
   description: '1,000-prompt comparison across 5 AI engines (you vs. up to 3 competitors). Topic cluster ownership map. Top 25 priority gaps. Full raw data export. Delivered alongside base audit.',
