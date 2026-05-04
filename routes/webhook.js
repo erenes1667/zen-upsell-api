@@ -1,6 +1,7 @@
 import { Router, raw } from 'express';
 import { stripe } from '../lib/stripe.js';
 import { notify, fmtPurchase } from '../lib/slack.js';
+import { sendNotification, fmtPurchaseEmail } from '../lib/mailer.js';
 
 const router = Router();
 
@@ -28,12 +29,18 @@ router.post('/', raw({ type: 'application/json' }), async (req, res) => {
     const session = event.data.object;
     const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 20 });
     const products = items.data.map(i => `${i.description || i.price?.id} ($${(i.amount_total / 100).toFixed(2)})`);
-    await notify(fmtPurchase({
+    const payload = {
      email: session.customer_details?.email,
      products,
      total: session.amount_total,
      sessionId: session.id,
-    }));
+     tier: session.metadata?.tier,
+    };
+    // Fire Slack and Mailgun in parallel; don't let one failure block the other.
+    await Promise.allSettled([
+     notify(fmtPurchase(payload)),
+     sendNotification(fmtPurchaseEmail(payload)),
+    ]);
     break;
    }
    case 'payment_intent.succeeded': {
