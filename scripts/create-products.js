@@ -12,13 +12,13 @@ const PRODUCTS = [
  {
   tier: 'audit-95',
   name: 'AI Visibility Audit',
-  description: '1,000 prompts tested across 5 AI engines (ChatGPT, Claude, Gemini, Perplexity, Grok). Live interactive dashboard. Raw prompt-and-response data exported (5,000 total AI responses). Branded vs non-branded citation breakdown per platform. 30-minute strategy call walking you through every gap and your custom 7-day plan.',
+  description: '1,000 prompts tested across 3 AI engines (ChatGPT, Gemini, Grok). Live interactive dashboard. Raw prompt-and-response data exported. Branded vs non-branded citation breakdown per platform. Custom 7-day plan based on your audit findings.',
   amount: 9500,
  },
  {
   tier: 'sprint-495',
   name: 'AI Visibility Sprint',
-  description: 'Everything in the AI Visibility Audit plus a custom 7-day execution plan and a 60-minute strategy call. 1,000 prompts across 5 AI engines, raw verification data, branded vs non-branded citation breakdown, and the full sprint roadmap.',
+  description: '1,000 prompts tested across 5 AI engines (ChatGPT, Claude, Gemini, Perplexity, Grok). Live interactive dashboard. Raw prompt-and-response data. Branded vs non-branded citation breakdown. Custom 7-day execution plan. Capped at 10 spots per month.',
   amount: 49500,
  },
  {
@@ -46,6 +46,7 @@ async function findExisting(tier) {
 async function ensureProduct({ tier, name, description, amount }) {
  let product = await findExisting(tier);
  let created = false;
+ let updated = false;
  if (!product) {
   product = await stripe.products.create({
    name,
@@ -54,6 +55,9 @@ async function ensureProduct({ tier, name, description, amount }) {
    metadata: { tier, funnel: 'zen-media-ai-visibility' },
   });
   created = true;
+ } else if (product.description !== description || product.name !== name) {
+  product = await stripe.products.update(product.id, { name, description });
+  updated = true;
  }
  // Find an existing active price matching the amount/currency
  const prices = await stripe.prices.list({ product: product.id, active: true, limit: 10 });
@@ -66,15 +70,16 @@ async function ensureProduct({ tier, name, description, amount }) {
    metadata: { tier, funnel: 'zen-media-ai-visibility' },
   });
  }
- return { product, price, created };
+ return { product, price, created, updated };
 }
 
 async function main() {
  console.log(`[create-products] mode=${isLiveKey ? 'live' : 'test'}`);
  const results = {};
  for (const def of PRODUCTS) {
-  const { product, price, created } = await ensureProduct(def);
-  console.log(`${created ? 'CREATED' : 'EXISTS '}  ${def.tier}`);
+  const { product, price, created, updated } = await ensureProduct(def);
+  const status = created ? 'CREATED' : updated ? 'UPDATED' : 'EXISTS ';
+  console.log(`${status}  ${def.tier}`);
   console.log(`  product: ${product.id}`);
   console.log(`  price:   ${price.id}`);
   results[def.tier] = { product: product.id, price: price.id, amount: def.amount };
