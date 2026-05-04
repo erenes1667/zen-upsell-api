@@ -36,11 +36,14 @@ router.post('/', raw({ type: 'application/json' }), async (req, res) => {
      sessionId: session.id,
      tier: session.metadata?.tier,
     };
-    // Fire Slack and Mailgun in parallel; don't let one failure block the other.
-    await Promise.allSettled([
-     notify(fmtPurchase(payload)),
-     sendNotification(fmtPurchaseEmail(payload)),
-    ]);
+    // Slack always fires immediately so sales sees the lead in real time.
+    // Email only fires here for sprint-495 (no upsells coming).
+    // For audit-95, /api/order/finalize sends a consolidated email after upsells settle.
+    const ops = [notify(fmtPurchase(payload))];
+    if (payload.tier === 'sprint-495') {
+     ops.push(sendNotification(fmtPurchaseEmail(payload)));
+    }
+    await Promise.allSettled(ops);
     break;
    }
    case 'payment_intent.succeeded': {

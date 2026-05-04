@@ -3,6 +3,7 @@ import checkoutRouter from './routes/checkout.js';
 import upsell1Router from './routes/upsell1.js';
 import upsellRouter from './routes/upsell.js';
 import webhookRouter from './routes/webhook.js';
+import orderRouter from './routes/order.js';
 import { isLiveKey } from './lib/stripe.js';
 
 const app = express();
@@ -36,6 +37,7 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/checkout', checkoutRouter);
 app.use('/api/upsell-1', upsell1Router);
 app.use('/api/upsell-2', upsellRouter);
+app.use('/api/order', orderRouter);
 
 // 404
 app.use((req, res) => {
