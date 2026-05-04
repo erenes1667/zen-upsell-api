@@ -79,7 +79,11 @@ router.post('/create-embedded', async (req, res) => {
    metadata: { funnel: 'zen-media-ai-visibility', tier },
   });
 
-  res.json({ id: session.id, client_secret: session.client_secret });
+  res.json({
+   id: session.id,
+   client_secret: session.client_secret,
+   publishable_key: process.env.STRIPE_PUBLISHABLE_KEY || null,
+  });
  } catch (err) {
   console.error('[checkout/create-embedded] error', err);
   res.status(500).json({ error: err.message || 'failed to create embedded session' });
