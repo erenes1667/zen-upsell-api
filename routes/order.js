@@ -25,6 +25,7 @@ router.post('/finalize', async (req, res) => {
   const customerId = session.customer;
   const email = session.customer_details?.email;
   const sessionCreated = session.created;
+  const attribution = pickAttributionFromMetadata(session.metadata);
 
   const products = [];
   let total = 0;
@@ -53,7 +54,7 @@ router.post('/finalize', async (req, res) => {
    }
   }
 
-  const payload = { email, products, total, sessionId: session_id, tier };
+  const payload = { email, products, total, sessionId: session_id, tier, attribution };
 
   // Always send the consolidated email (Slack already pinged via webhook on initial)
   await sendNotification(fmtPurchaseEmail(payload));
@@ -72,5 +73,19 @@ router.post('/finalize', async (req, res) => {
   res.status(500).json({ error: err.message || 'failed to finalize order' });
  }
 });
+
+const ATTRIBUTION_KEYS = [
+ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+ 'gclid', 'fbclid', 'ttclid', 'msclkid', 'irclickid', 'ref', 'landing_page',
+];
+
+function pickAttributionFromMetadata(metadata) {
+ const out = {};
+ if (!metadata) return out;
+ for (const k of ATTRIBUTION_KEYS) {
+  if (typeof metadata[k] === 'string' && metadata[k].length) out[k] = metadata[k];
+ }
+ return out;
+}
 
 export default router;

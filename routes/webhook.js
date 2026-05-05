@@ -35,6 +35,7 @@ router.post('/', raw({ type: 'application/json' }), async (req, res) => {
      total: session.amount_total,
      sessionId: session.id,
      tier: session.metadata?.tier,
+     attribution: pickAttributionFromMetadata(session.metadata),
     };
     // Slack always fires immediately so sales sees the lead in real time.
     // Email only fires here for sprint-495 (no upsells coming).
@@ -63,5 +64,19 @@ router.post('/', raw({ type: 'application/json' }), async (req, res) => {
   res.status(500).json({ error: err.message });
  }
 });
+
+const ATTRIBUTION_KEYS = [
+ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+ 'gclid', 'fbclid', 'ttclid', 'msclkid', 'irclickid', 'ref', 'landing_page',
+];
+
+function pickAttributionFromMetadata(metadata) {
+ const out = {};
+ if (!metadata) return out;
+ for (const k of ATTRIBUTION_KEYS) {
+  if (typeof metadata[k] === 'string' && metadata[k].length) out[k] = metadata[k];
+ }
+ return out;
+}
 
 export default router;

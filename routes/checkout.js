@@ -34,12 +34,32 @@ function resolveTier(req, res) {
  return { tier, cfg };
 }
 
+// Whitelist of attribution keys we accept from the browser and persist on the
+// Stripe Checkout Session metadata. Stripe metadata caps at 50 keys / 500 chars per value.
+const ATTRIBUTION_KEYS = [
+ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+ 'gclid', 'fbclid', 'ttclid', 'msclkid', 'irclickid', 'ref', 'landing_page',
+];
+
+function pickAttribution(input) {
+ const out = {};
+ if (!input || typeof input !== 'object') return out;
+ for (const key of ATTRIBUTION_KEYS) {
+  const v = input[key];
+  if (typeof v === 'string' && v.length > 0) {
+   out[key] = v.slice(0, 480); // stay under Stripe's 500-char metadata cap
+  }
+ }
+ return out;
+}
+
 // Hosted Stripe Checkout (back-compat). Returns a redirect URL.
 router.post('/create-session', async (req, res) => {
  try {
   const t = resolveTier(req, res);
   if (!t) return;
   const { tier, cfg } = t;
+  const attribution = pickAttribution(req.body && req.body.attribution);
 
   const session = await stripe.checkout.sessions.create({
    mode: 'payment',
@@ -50,7 +70,7 @@ router.post('/create-session', async (req, res) => {
    billing_address_collection: 'auto',
    success_url: cfg.successUrl,
    cancel_url: cfg.cancelPath,
-   metadata: { funnel: 'zen-media-ai-visibility', tier },
+   metadata: { funnel: 'zen-media-ai-visibility', tier, ...attribution },
   });
 
   res.json({ id: session.id, url: session.url });
@@ -67,6 +87,7 @@ router.post('/create-embedded', async (req, res) => {
   const t = resolveTier(req, res);
   if (!t) return;
   const { tier, cfg } = t;
+  const attribution = pickAttribution(req.body && req.body.attribution);
 
   const session = await stripe.checkout.sessions.create({
    ui_mode: 'embedded',
@@ -76,7 +97,7 @@ router.post('/create-embedded', async (req, res) => {
    customer_creation: 'always',
    billing_address_collection: 'auto',
    return_url: cfg.successUrl,
-   metadata: { funnel: 'zen-media-ai-visibility', tier },
+   metadata: { funnel: 'zen-media-ai-visibility', tier, ...attribution },
   });
 
   res.json({
