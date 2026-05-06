@@ -35,6 +35,7 @@ router.post('/', raw({ type: 'application/json' }), async (req, res) => {
      total: session.amount_total,
      sessionId: session.id,
      tier: session.metadata?.tier,
+     clientReferenceId: session.client_reference_id || null,
      attribution: pickAttributionFromMetadata(session.metadata),
     };
     // Slack always fires immediately so sales sees the lead in real time.

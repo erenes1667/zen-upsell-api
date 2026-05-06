@@ -1,4 +1,4 @@
-// One-time: create the two $147 Stripe products + prices.
+// One-time: create Zen Media paid-funnel Stripe products + prices.
 // Idempotent — checks Product metadata.tier before creating.
 // Safe in live mode: products do not charge anything until used in a Checkout Session or PaymentIntent.
 //
@@ -32,6 +32,12 @@ const PRODUCTS = [
   name: 'Brand Reputation + Executive Audit',
   description: 'Sentiment sweep across Reddit, reviews, social, AI engines. Volume + trajectory of mentions (90 days). Top 5 negative + positive narratives. AI perception snapshot. Plus: LinkedIn / personal AI visibility / reverse image / AI perception summary for up to 4 named executives.',
   amount: 14700,
+ },
+ {
+  tier: 'ai-pack-2500',
+  name: 'AI Visibility Accelerator Pack',
+  description: 'Sales-led custom engagement deposit. AI Visibility Accelerator Pack.',
+  amount: 250000,
  },
 ];
 
@@ -89,8 +95,10 @@ async function main() {
  console.log(`\n✓ wrote ${outPath.pathname}`);
  console.log('\nAdd these to .env:');
  console.log(`STRIPE_PRICE_AUDIT_95=${results['audit-95'].price}`);
+ console.log(`STRIPE_PRICE_SPRINT_495=${results['sprint-495'].price}`);
  console.log(`STRIPE_PRICE_COMPETITOR_147=${results['competitor-comparison-147'].price}`);
  console.log(`STRIPE_PRICE_BRAND_REP_147=${results['brand-reputation-exec-147'].price}`);
+ console.log(`STRIPE_PRICE_AI_PACK_2500=${results['ai-pack-2500'].price}`);
 }
 
 main().catch(e => {
