@@ -47,7 +47,7 @@ function resolveTier(req, res) {
   return null;
  }
  if (!cfg.price) {
-  res.status(500).json({ error: `Tier ${tier} has no Stripe price configured (env STRIPE_PRICE_${tier.toUpperCase().replace('-','_')})` });
+  res.status(500).json({ error: `Tier ${tier} has no Stripe price configured (env STRIPE_PRICE_${tier.toUpperCase().replace(/-/g, '_')})` });
   return null;
  }
  return { tier, cfg };
