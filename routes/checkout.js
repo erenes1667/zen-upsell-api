@@ -32,6 +32,12 @@ const TIERS = {
   cancelPath: 'https://zenmedia.com/pay/ai-pack',
   salesLed: true,
  },
+ 'migration-pack-2500': {
+  price: process.env.STRIPE_PRICE_MIGRATION_PACK_2500,
+  successUrl: 'https://zenmedia.com/pay/thank-you?session_id={CHECKOUT_SESSION_ID}',
+  cancelPath: 'https://zenmedia.com/pay/migration-pack',
+  salesLed: true,
+ },
  'migration-audit-495': {
   price: process.env.STRIPE_PRICE_MIGRATION_AUDIT_495,
   successUrl: 'https://offer.optimum7.com/migration-thank-you-paid?session_id={CHECKOUT_SESSION_ID}',
