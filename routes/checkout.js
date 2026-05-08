@@ -9,6 +9,10 @@ const router = Router();
 //   ai-pack-2500 → branded /pay/ai-pack checkout page on zenmedia.com.
 //                  Anyone can use it; client_reference_id (Salesforce Opp ID)
 //                  is accepted and round-tripped when present, but optional.
+//   migration-audit-495 → Optimum7 Migration Accelerator Pack audit. One-time, no upsells.
+//                  Funnel host is TBD (offer.optimum7.com vs optimum7.com/migration-...).
+//                  Default success/cancel URLs use offer.optimum7.com; flip to the WP host
+//                  if Q1 lands on optimum7.com/migration-accelerator-pack.
 // successUrl is per-tier so we don't need a single SUCCESS_URL env var.
 // salesLed=true skips card-saving (no follow-up off-session charges expected).
 const TIERS = {
@@ -27,6 +31,11 @@ const TIERS = {
   successUrl: 'https://zenmedia.com/pay/thank-you?session_id={CHECKOUT_SESSION_ID}',
   cancelPath: 'https://zenmedia.com/pay/ai-pack',
   salesLed: true,
+ },
+ 'migration-audit-495': {
+  price: process.env.STRIPE_PRICE_MIGRATION_AUDIT_495,
+  successUrl: 'https://offer.optimum7.com/migration-thank-you-paid?session_id={CHECKOUT_SESSION_ID}',
+  cancelPath: 'https://offer.optimum7.com/migration-accelerator-pack',
  },
 };
 
