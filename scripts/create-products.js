@@ -36,7 +36,7 @@ const PRODUCTS = [
  {
   tier: 'ai-pack-2500',
   name: 'AI Visibility Accelerator Pack',
-  description: 'Sales-led custom engagement deposit. AI Visibility Accelerator Pack.',
+  description: 'Deposit toward your AI Visibility Accelerator Pack engagement with Zen Media. Your account team will email next steps after payment clears.',
   amount: 250000,
  },
 ];
