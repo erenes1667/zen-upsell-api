@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { stripe } from '../lib/stripe.js';
+import { pickStripe, pickPublishableKey } from '../lib/stripe.js';
 
 const router = Router();
 
@@ -32,11 +32,14 @@ const TIERS = {
   cancelPath: 'https://zenmedia.com/pay/ai-pack',
   salesLed: true,
  },
+ // Per Duran 2026-05-12: Migration Pack moved from Zen Media to Optimum7.
+ // Routes to the Optimum7 Stripe account via the multi-account pattern.
  'migration-pack-2500': {
   price: process.env.STRIPE_PRICE_MIGRATION_PACK_2500,
-  successUrl: 'https://zenmedia.com/pay/thank-you?session_id={CHECKOUT_SESSION_ID}',
-  cancelPath: 'https://zenmedia.com/pay/migration-pack',
+  successUrl: 'https://optimum7.com/pay/thank-you?session_id={CHECKOUT_SESSION_ID}',
+  cancelPath: 'https://optimum7.com/pay/migration-pack',
   salesLed: true,
+  stripeAccount: 'optimum7',
  },
  'migration-audit-495': {
   price: process.env.STRIPE_PRICE_MIGRATION_AUDIT_495,
@@ -89,12 +92,21 @@ function pickAttribution(input) {
  return out;
 }
 
+// `metadata.funnel` differentiates the brand at the SF / reporting layer.
+// Tiers default to zen-media unless their config opts into a different funnel
+// label (typically aligned with the stripeAccount routing).
+function funnelLabel(cfg) {
+ if (cfg.stripeAccount === 'optimum7') return 'optimum7-custom-pay';
+ return 'zen-media-ai-visibility';
+}
+
 // Hosted Stripe Checkout (back-compat). Returns a redirect URL.
 router.post('/create-session', async (req, res) => {
  try {
   const t = resolveTier(req, res);
   if (!t) return;
   const { tier, cfg } = t;
+  const stripeClient = pickStripe(cfg.stripeAccount);
   const attribution = pickAttribution(req.body && req.body.attribution);
   const clientReferenceId = validateClientReferenceId(req.body && req.body.client_reference_id);
 
@@ -105,14 +117,14 @@ router.post('/create-session', async (req, res) => {
    billing_address_collection: 'auto',
    success_url: cfg.successUrl,
    cancel_url: cfg.cancelPath,
-   metadata: { funnel: 'zen-media-ai-visibility', tier, ...attribution },
+   metadata: { funnel: funnelLabel(cfg), tier, ...attribution },
   };
   if (!cfg.salesLed) {
    params.payment_intent_data = { setup_future_usage: 'off_session' };
   }
   if (clientReferenceId) params.client_reference_id = clientReferenceId;
 
-  const session = await stripe.checkout.sessions.create(params);
+  const session = await stripeClient.checkout.sessions.create(params);
 
   res.json({ id: session.id, url: session.url });
  } catch (err) {
@@ -122,12 +134,13 @@ router.post('/create-session', async (req, res) => {
 });
 
 // Embedded Stripe Checkout. Returns a client_secret for stripe.initEmbeddedCheckout.
-// Used by /pay-95, /pay-495, and /pay/ai-pack branded payment pages.
+// Used by /pay-95, /pay-495, /pay/ai-pack (zenmedia), /pay/migration-pack (optimum7).
 router.post('/create-embedded', async (req, res) => {
  try {
   const t = resolveTier(req, res);
   if (!t) return;
   const { tier, cfg } = t;
+  const stripeClient = pickStripe(cfg.stripeAccount);
   const attribution = pickAttribution(req.body && req.body.attribution);
   const clientReferenceId = validateClientReferenceId(req.body && req.body.client_reference_id);
 
@@ -138,19 +151,19 @@ router.post('/create-embedded', async (req, res) => {
    customer_creation: 'always',
    billing_address_collection: 'auto',
    return_url: cfg.successUrl,
-   metadata: { funnel: 'zen-media-ai-visibility', tier, ...attribution },
+   metadata: { funnel: funnelLabel(cfg), tier, ...attribution },
   };
   if (!cfg.salesLed) {
    params.payment_intent_data = { setup_future_usage: 'off_session' };
   }
   if (clientReferenceId) params.client_reference_id = clientReferenceId;
 
-  const session = await stripe.checkout.sessions.create(params);
+  const session = await stripeClient.checkout.sessions.create(params);
 
   res.json({
    id: session.id,
    client_secret: session.client_secret,
-   publishable_key: process.env.STRIPE_PUBLISHABLE_KEY || null,
+   publishable_key: pickPublishableKey(cfg.stripeAccount),
   });
  } catch (err) {
   console.error('[checkout/create-embedded] error', err);
