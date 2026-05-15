@@ -41,10 +41,13 @@ const TIERS = {
   salesLed: true,
   stripeAccount: 'optimum7',
  },
+ // Per Duran 2026-05-15: Migration Audit (deposit tier) lives on Optimum7 Stripe.
+ // GHL slugs verified live: /migration-bundle → /payment-migration-audit → /checkout-complete.
  'migration-audit-495': {
   price: process.env.STRIPE_PRICE_MIGRATION_AUDIT_495,
-  successUrl: 'https://offer.optimum7.com/migration-thank-you-paid?session_id={CHECKOUT_SESSION_ID}',
-  cancelPath: 'https://offer.optimum7.com/migration-accelerator-pack',
+  successUrl: 'https://offer.optimum7.com/checkout-complete?session_id={CHECKOUT_SESSION_ID}',
+  cancelPath: 'https://offer.optimum7.com/migration-bundle',
+  stripeAccount: 'optimum7',
  },
 };
 
